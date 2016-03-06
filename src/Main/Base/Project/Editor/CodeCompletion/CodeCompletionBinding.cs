@@ -53,6 +53,15 @@ namespace ICSharpCode.SharpDevelop.Editor.CodeCompletion
 		bool CtrlSpace(ITextEditor editor);
 	}
 	
+	public interface IInsightCodeCompletionBinding
+	{
+		/// <summary>
+		/// Invokes ctrl-shift-space code insight.
+		/// </summary>
+		/// <returns>Returns whether the completion binding has shown code insight.</returns>
+		bool CtrlShiftSpace(ITextEditor editor);
+	}
+	
 	/// <summary>
 	/// The result of <see cref="ICodeCompletionBinding.HandleKeyPress"/>.
 	/// </summary>
@@ -114,7 +123,7 @@ namespace ICSharpCode.SharpDevelop.Editor.CodeCompletion
 		}
 	}
 	
-	public sealed class LazyCodeCompletionBinding : ICodeCompletionBinding
+	public sealed class LazyCodeCompletionBinding : ICodeCompletionBinding, IInsightCodeCompletionBinding
 	{
 		Codon codon;
 		string[] extensions;
@@ -164,6 +173,16 @@ namespace ICSharpCode.SharpDevelop.Editor.CodeCompletion
 				return binding.CtrlSpace(editor);
 			else
 				return false;
+		}
+
+		public bool CtrlShiftSpace(ITextEditor editor)
+		{
+			if (MatchesExtension(editor)) {
+				var insightBinding = binding as IInsightCodeCompletionBinding;
+				if (insightBinding != null)
+					return insightBinding.CtrlShiftSpace(editor);
+			}
+			return false;
 		}
 	}
 }

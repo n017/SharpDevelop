@@ -118,15 +118,17 @@ namespace ICSharpCode.Reporting.WpfReportViewer.Visitor
 //	http://stackoverflow.com/questions/25308612/vertical-alignment-with-drawingcontext-drawtext	
 		
 		public override void Visit(ExportText exportColumn){
-			
+			if (exportColumn.Text.Equals("BaseTextItem2147483637")) {
+				Console.WriteLine("stop");
+			}
 			var formattedText = FixedDocumentCreator.CreateFormattedText((ExportText)exportColumn);
-
 			var location = new Point(exportColumn.Location.X,exportColumn.Location.Y);
-			
 			var visual = new DrawingVisual();
+			
 			using (var drawingContext = visual.RenderOpen()){
-				var bachgroundRect = new Rect(location,new Size(exportColumn.DesiredSize.Width,formattedText.MaxTextHeight));
+//				var bachgroundRect = new Rect(location,new Size(exportColumn.DesiredSize.Width,formattedText.Height));
 				if (ShouldSetBackcolor(exportColumn)) {
+					var bachgroundRect = new Rect(location,new Size(exportColumn.DesiredSize.Width,formattedText.Height));
 					drawingContext.DrawRectangle(FixedDocumentCreator.ConvertBrush(exportColumn.BackColor),  null,bachgroundRect);	                             
 				}
 				
@@ -176,13 +178,17 @@ namespace ICSharpCode.Reporting.WpfReportViewer.Visitor
 
 		
 		public override void Visit(ExportRectangle exportRectangle){
-			Canvas  containerCanvas  = FixedDocumentCreator.CreateContainer(exportRectangle);
-			Canvas elementCanvas = null;
+			
+			var  containerCanvas  = FixedDocumentCreator.CreateContainer(exportRectangle);
+			// leads to a small gap from Border to canvas
+			containerCanvas.Width = containerCanvas.Width - ( 3 * exportRectangle.Thickness);
+			containerCanvas.Height = containerCanvas.Height - (3 * exportRectangle.Thickness);
+			
 			var border = CreateBorder(exportRectangle);
 			border.CornerRadius = new CornerRadius(Convert.ToDouble(exportRectangle.CornerRadius));
-			
 			CanvasHelper.SetPosition(border, new Point(0,0));
 			
+			Canvas elementCanvas = null;
 			foreach (var element in exportRectangle.ExportedItems) {
 				if (IsGraphicsContainer(element)) {
 					elementCanvas = RenderGraphicsContainer(element);
@@ -253,8 +259,8 @@ namespace ICSharpCode.Reporting.WpfReportViewer.Visitor
 			border.BorderThickness =  Thickness(exportColumn);
 			border.BorderBrush = FixedDocumentCreator.ConvertBrush(exportColumn.ForeColor);
 			border.Background = FixedDocumentCreator.ConvertBrush(exportColumn.BackColor);
-			border.Width = exportColumn.Size.Width + 2;
-			border.Height = exportColumn.Size.Height + 2;
+			border.Width = exportColumn.Size.Width;
+			border.Height = exportColumn.Size.Height;
 			return border;
 		}
 
